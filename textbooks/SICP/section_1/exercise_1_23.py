@@ -60,3 +60,4 @@ if __name__ == "__main__":
         "search_for_primes(1000000, 10000000):",
         search_for_primes((1000000, 10000000)),
     )
+    # The ratio of the speeds of the two algorithms is not exactly 2, but close enough
