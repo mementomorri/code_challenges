@@ -50,11 +50,31 @@ def track_elapsed_time(func):
 
 if __name__ == "__main__":
     print("Larger than 1,000:")
-    for _ in range(10):
-        timed_prime_test(randint(1000, 9999))
+    p1 = 0
+    for n in range(1000, 10000):
+        if timed_prime_test(n):
+            p1 += 1
+            print(f"{p1}-th primal number")
+
+        if p1 >= 3:
+            break
+
     print("\nLarger than 10,000:")
-    for _ in range(10):
-        timed_prime_test(randint(10000, 99999))
+    p2 = 0
+    for n in range(10000, 100000):
+        if timed_prime_test(n):
+            p2 += 1
+            print(f"{p2}-th primal number")
+
+        if p2 >= 3:
+            break
+
     print("\nLarger than 100,000:")
-    for _ in range(10):
-        timed_prime_test(randint(100000, 999999))
+    p3 = 0
+    for n in range(100000, 1000000):
+        if timed_prime_test(n):
+            p3 += 1
+            print(f"{p3}-th primal number")
+
+        if p3 >= 3:
+            break
