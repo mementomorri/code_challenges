@@ -1,4 +1,5 @@
-from random import randint
+import math
+import random
 import time
 from functools import wraps
 
@@ -20,13 +21,14 @@ def is_prime(n):
     return n == smallest_divisor(n)
 
 
-def timed_prime_test(n: int) -> bool:
-    print(f"Testing {n} for primality...")
+def timed_prime_test(n: int, show_log=None) -> bool:
+    if show_log:
+        print(f"Testing {n} for primality...")
     return start_prime_test(n, time.time())
 
 
 def start_prime_test(n: int, start_time: float) -> bool:
-    return report_prime(time.time() - start_time) if is_prime(n) else False
+    return report_prime(time.time() - start_time) if fast_is_prime(n, 3) else False
 
 
 def report_prime(elapsed_time: float) -> bool:
@@ -48,33 +50,50 @@ def track_elapsed_time(func):
     return wrapper
 
 
+# Probabalistic approach with O(log n)
+def expmod(b: int, exp: int, m: int):
+    if exp == 0:
+        return 1
+    elif exp % 2 == 0:
+        return expmod(b, exp // 2, m) ** 2
+    else:
+        return (b * expmod(b, exp - 1, m)) % m
+
+
+def fermat_test(n: int):
+    def try_it(a: int):
+        return expmod(a, n, n) == a
+
+    return try_it(1 + math.floor(random.random() * (n - 1)))
+
+
+def fast_is_prime(n: int, times: int):
+    if times == 0:
+        return True
+    elif fermat_test(n):
+        return fast_is_prime(n, times - 1)
+    else:
+        return False
+
+
+def search_for_primes(search_rage: tuple[int, int], show_log=None) -> tuple[int]:
+    result = list()
+    prime_counter = 0
+    for n in range(search_rage[0], search_rage[1]):
+        if timed_prime_test(n, show_log):
+            prime_counter += 1
+            result.append(n)
+            print(f"{prime_counter}-th primal number")
+
+        if prime_counter >= 3:
+            break
+    return tuple(result)
+
+
 if __name__ == "__main__":
-    print("Larger than 1,000:")
-    p1 = 0
-    for n in range(1000, 10000):
-        if timed_prime_test(n):
-            p1 += 1
-            print(f"{p1}-th primal number")
-
-        if p1 >= 3:
-            break
-
-    print("\nLarger than 10,000:")
-    p2 = 0
-    for n in range(10000, 100000):
-        if timed_prime_test(n):
-            p2 += 1
-            print(f"{p2}-th primal number")
-
-        if p2 >= 3:
-            break
-
-    print("\nLarger than 100,000:")
-    p3 = 0
-    for n in range(100000, 1000000):
-        if timed_prime_test(n):
-            p3 += 1
-            print(f"{p3}-th primal number")
-
-        if p3 >= 3:
-            break
+    print("search_for_primes(1000, 10000):", search_for_primes((1000, 10000)))
+    print("search_for_primes(10000, 100000):", search_for_primes((10000, 100000)))
+    print("search_for_primes(100000, 1000000):", search_for_primes((100000, 1000000)))
+    print(
+        "search_for_primes(1000000, 10000000):", search_for_primes((1000000, 10000000))
+    )
