@@ -34,45 +34,55 @@ import csv
 from time import perf_counter
 
 
+def count_zero_clicks(csv_path: str) -> int:
+    """Return the number of times the dial points at 0 during the whole sequence."""
+
+    pos = 50  # starting position
+    zero_hits = 0
+    with open(csv_path, newline='') as file:
+        instructions = csv.reader(file)
+        for line in instructions:
+            line = line[0].strip()
+            if not line:
+                continue
+
+            direction = line[0]  # 'L' or 'R'
+            steps = int(line[1:])  # distance value
+            step_sign = -1 if direction == 'L' else 1
+
+            # Walk through each click
+            for _ in range(steps):
+                pos = (pos + step_sign) % 100
+                if pos == 0:
+                    zero_hits += 1
+
+    return zero_hits
+
+
 def count_zeroes(csv_path: str) -> int:
     """Counts the amount of time the safe dial is set to 0."""
-    zoeroes_counter = 0
+    zeroes_counter = 0
     dial_pointer = 50
 
     with open(csv_path, newline='') as file:
         input_csv = csv.reader(file)
 
         for line in input_csv:
-            # print(f"Dial: {dial_pointer}, next move: {line[0]}")
-            move = line[0]
+            if not line:
+                continue
+            move = line[0].strip()
             if not move:
                 continue
 
             direction = move[0]
-            step = int(move[1:])
+            steps = int(move[1:])
+            step_sign = -1 if direction == 'L' else 1
 
-            if direction == 'L':
-                dial_pointer -= step
-                # if dial_pointer + step != 0 and dial_pointer < 0:
-                #     zoeroes_counter += 1
-            elif direction == 'R':
-                dial_pointer += step
-
-            if abs(dial_pointer) > 100:
-                # print(f"Multiple turns over 0: {abs(dial_pointer) // 100} and with remainder {dial_pointer / 100}")
-                zoeroes_counter += abs(dial_pointer) // 100
-
-            # if dial_pointer < 0:
-            #     print("Dial is negative! So +1 to zeroes")
-            #     zoeroes_counter += 1
-
-            dial_pointer %= 100
-
-            if dial_pointer == 0:
-                # print("Found zero!")
-                zoeroes_counter += 1
-
-    return zoeroes_counter
+            for _ in range(steps):
+                dial_pointer = (dial_pointer + step_sign) % 100
+                if dial_pointer == 0:
+                    zeroes_counter += 1
+    return zeroes_counter
 
 
 if __name__ == '__main__':
@@ -80,8 +90,15 @@ if __name__ == '__main__':
 
     result = count_zeroes("day1/input.csv")
     print(f"The password to the door is: {result}")
-    # in my case in was 962
+    # in my case in was 5782
 
     end_time = perf_counter()
     print(f"It took {end_time - start_time} seconds to run.")
-    # It took 0.0013086670005577616 seconds to run.
+    # It took 0.018145906000427203 seconds to run.
+    # A lot slower than first puzzle, but still fast.
+    #
+    # Initial guess was to keep using remainder of devide,
+    # like with divmod(). But optimal solution is a lot simpler.
+    # Just add step with sign (+-) and count every
+    # time we hit zero, a lot simpler, than with modulo and
+    # complex conditions.
