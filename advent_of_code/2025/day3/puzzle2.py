@@ -27,28 +27,46 @@ What is the new total output joltage?
 """
 
 
-def find_max_num(line: str) -> int:
-    digits_list = list(line)
-    digits_list = list(map(int, digits_list))
-    while len(digits_list) > 12:
-        current_min = min(digits_list)
-        digits_list.remove(current_min)
+def find_max_num(line: str, keep_count: int) -> int:
+    """Calculates the largest number,
+    that consists of 12 cosequtive digits,
+    in the line"""
+    digits = list(map(int, line))
+    n = len(digits)
 
-    print("".join(map(str, digits_list)), "lenghth of digits_list:", len(digits_list))
-    return int("".join(map(str, digits_list)))
+    to_remove = n - keep_count
+
+    if to_remove < 0:
+        return 0
+
+    stack = []
+
+    for digit in digits:
+        while to_remove > 0 and stack and stack[-1] < digit:
+            stack.pop()
+            to_remove -= 1
+        stack.append(digit)
+
+    result_digits = stack[:keep_count]
+
+    print(result_digits)
+    return int("".join(map(str, result_digits)))
 
 
 def calculate_total_joltage(input_file: str):
     total_joltage = 0
+    keep_count = 12
     with open(input_file) as f:
         lines = f.readlines()
         for line in lines:
-            if not line.strip():
+            line = line.strip()
+            if not line:
                 continue
-            total_joltage += find_max_num(line.strip())
+            total_joltage += find_max_num(line, keep_count)
     return total_joltage
 
 
 if __name__ == '__main__':
-    print("Total output joltage is:", calculate_total_joltage("day3/input_test.txt"))
-    # print("Total output joltage is:", calculate_total_joltage("day3/input.txt"))
+    # print("Total output joltage is:", calculate_total_joltage("day3/input_test.txt"))
+    print("Total output joltage is:", calculate_total_joltage("day3/input.txt"))
+    # The answer is 170025781683941
