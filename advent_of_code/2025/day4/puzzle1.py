@@ -43,7 +43,7 @@ Consider your complete diagram of the paper roll locations. How many rolls of pa
 """
 
 def is_valid_cell(x, y) -> bool:
-    return True if x >= 0 and x < TOTAL_COLS and y >= 0 and y < TOTAL_ROWS else False
+    return True if ((x >= 0 and x < TOTAL_COLS) and (y >= 0 and y < TOTAL_ROWS)) else False
 
 def format_shelf(lines: list[str]) -> list[list[int]]:
     result = []
@@ -59,6 +59,11 @@ def format_shelf(lines: list[str]) -> list[list[int]]:
 
         result.append(list(map(int, line)))
 
+    global TOTAL_ROWS
+    global TOTAL_COLS
+    TOTAL_ROWS = len(result)
+    TOTAL_COLS = len(result[0])
+
     return result
 
 
@@ -66,8 +71,8 @@ def count_paper_rolls_to_be_retrieved(lines: list[str]) -> int:
     accessible = 0
     rows = format_shelf(lines)
 
-    for x, row in enumerate(rows):
-        for y, col in enumerate(row):
+    for y, row in enumerate(rows):
+        for x, col in enumerate(row):
             if not is_valid_cell(x, y):
                 break
             if col == 0:
@@ -75,15 +80,14 @@ def count_paper_rolls_to_be_retrieved(lines: list[str]) -> int:
 
             sum_of_neighbours = 0
             for neighbour in NEIGHBOURS:
-                neighbour_x, neighbour_y = x + neighbour[0], y + neighbour[1]
-                print(neighbour_x, neighbour_y)
+                neighbour_y, neighbour_x = y + neighbour[1], x + neighbour[0]
                 if is_valid_cell(neighbour_x, neighbour_y):
-                    sum_of_neighbours += rows[neighbour_x][neighbour_y]
+                    sum_of_neighbours += rows[neighbour_y][neighbour_x]
 
             if sum_of_neighbours < 4:
                 accessible+=1
 
-    return 1
+    return accessible
 
 
 def paper_rolls_that_can_be_accessed(input_file: str):
@@ -91,10 +95,6 @@ def paper_rolls_that_can_be_accessed(input_file: str):
     f = open(input_file)
     try:
         lines = f.readlines()
-        global TOTAL_ROWS
-        global TOTAL_COLS
-        TOTAL_ROWS = len(lines) - 1
-        TOTAL_COLS = len(lines[0]) - 1
         accessable_paper_rolls = count_paper_rolls_to_be_retrieved(lines)
     finally:
         f.close()
@@ -111,5 +111,6 @@ NEIGHBOURS = (
 )
 
 if __name__ == '__main__':
-    print("Total accessable paper rolls is:", paper_rolls_that_can_be_accessed("day4/test_input.txt"))
-    # print("Total accessable paper rolls is:", paper_rolls_that_can_be_accessed("day4/input.txt"))
+    # print("Total accessable paper rolls is:", paper_rolls_that_can_be_accessed("day4/test_input.txt"))
+    print("Total accessable paper rolls is:", paper_rolls_that_can_be_accessed("day4/input.txt"))
+    # Total accessable paper rolls is: 1516
