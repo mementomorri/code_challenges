@@ -23,3 +23,95 @@ Now, the grand total is 1058 + 3253600 + 625 + 8544 = 3263827.
 
 Solve the problems on the math worksheet again. What is the grand total found by adding together all of the answers to the individual problems?
 """
+
+from functools import reduce
+from collections import defaultdict
+
+
+def do_math(nums: list[int], op: str) -> int:
+    if nums:
+        if op == "+":
+            return sum(nums)
+
+        if op == "*":
+            return reduce(lambda x, y: x * y, nums)
+
+    return 0
+
+
+def count_grand_total(nums: list[list[int]], ops: list[str]) -> int:
+    grand_total = 0
+    row = []
+    prev_op = ""
+
+    for i, op in enumerate(ops):
+        if op == "+" or op == "*":
+            prev_op = op
+        if not nums[i]:
+            print(row)
+            grand_total += do_math(row, prev_op)
+            row = []
+            continue
+        row.append(nums[i][0])
+        print(f"i={i}, op={op}, prev_op={prev_op}, grand_total={grand_total}, nums[i]={nums[i]}")
+
+    return grand_total
+
+
+def process_rows(nums: dict[int, list[str]]) -> list[list[int]]:
+    result = []
+    num = ""
+
+    for k, v in nums.items():
+        result.append([])
+        for i, n in enumerate(v):
+            if n.isdigit():
+                num += n
+            else:
+                if num:
+                    result[k].append(int(num))
+                    num = ""
+
+        if num:
+            result[k].append(int(num))
+            num = ""
+    return result
+
+
+def processed_line(line: str, nums: dict[int, list[str]]) -> None:
+    for i, n in enumerate(line):
+        nums[i].append(n)
+
+
+def process_input(input_path: str) -> int:
+    ops = []
+    nums = defaultdict(list)
+
+    try:
+        f = open(input_path)
+        lines = f.readlines()
+        for i, line in enumerate(lines):
+            if not line:
+                break
+
+            if i == len(lines) - 1:
+                ops = line
+            else:
+                processed_line(line, nums)
+
+    except FileNotFoundError:
+        return 0
+
+    finally:
+        f.close()
+    print(f"before process rows: {nums}")
+    cols = process_rows(nums)
+    print(f"after process rows: {cols}")
+    print(ops)
+    return count_grand_total(cols, ops)
+
+
+if __name__ == "__main__":
+    # print(f"The grand total: {process_input('day6/test_input.txt')}")
+    print(f"The grand total: {process_input('day6/input.txt')}")
+    # The grand total: 7669802156452
