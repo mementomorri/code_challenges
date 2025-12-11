@@ -145,11 +145,17 @@ def collect_line(line: str, beam_coodinates: dict[int, list[int]], y: int) -> in
     are not next to each other.
     """
     splits_hit = 0
+
     for i, char in enumerate(line):
-        if char == SPLITTER and beam_coodinates.get(y - 1):
-            if i in beam_coodinates[y - 1]:
-                beam_coodinates[y].append(i - 1)
-                beam_coodinates[y].append(i + 1)
+        if i in beam_coodinates.get(y - 1, []):
+            if char == SPLITTER:
+                if i > 0 and line[i - 1] != SPLITTER:
+                    beam_coodinates[y].append(i - 1)
+                if i < len(line) - 1 and line[i + 1] != SPLITTER:
+                    beam_coodinates[y].append(i + 1)
+                splits_hit += 1
+            if char == SPACE:
+                beam_coodinates[y].append(i)
 
     return splits_hit
 
@@ -179,4 +185,15 @@ def process_input(input_path: str) -> int:
 
 
 if __name__ == "__main__":
-    print(f"Tachyon beam will split: {process_input("day7/test_input.txt")}")
+    # print(f"Tachyon beam will split: {process_input("day7/test_input.txt")}")
+    print(f"Tachyon beam will split: {process_input("day7/input.txt")}")
+    # Tachyon beam will split: 1626
+    #
+    # I was about to give up on this one because didn't
+    # have a clever solution right from the start and
+    # that kind of frustrated me.
+    #
+    # But I took some time off the screen to reflect
+    # on the problem and got it right.
+    #
+    # Lesson learned from AoC: Don't rush to the solution.
