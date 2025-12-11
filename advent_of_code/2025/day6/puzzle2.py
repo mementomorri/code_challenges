@@ -28,83 +28,82 @@ from functools import reduce
 from collections import defaultdict
 
 
-def do_math(nums: list[int], op: str) -> int:
-    if nums:
-        if op == "+":
-            return sum(nums)
+def apply_op(nums: list[int], op: str) -> int:
+    if op == "+":
+        return sum(nums)
 
-        if op == "*":
-            return reduce(lambda x, y: x * y, nums)
+    if op == "*":
+        return reduce(lambda x, y: x * y, nums)
 
     return 0
 
 
-def count_grand_total(nums: list[list[int]], ops: list[str]) -> int:
-    grand_total = 0
-    prev_op = ""
-
-    for i, op in enumerate(ops):
-        if op == "+" or op == "*":
-            prev_op = op
-
-        grand_total += do_math(nums[i], prev_op)
-        print(f"i={i}, op={op}, prev_op={prev_op}, grand_total={grand_total}, nums[i]={nums[i]}")
-
-    return grand_total
+def count_grand_total(rows: list[list[int]], ops: list[str]) -> int:
+    return sum(apply_op(row, op) for row, op in zip(rows, ops))
 
 
-def process_rows(nums: dict[int, list[str]]) -> list[list[int]]:
-    result = []
-    num = ""
+def parse_rows(nums: dict[int, list[str]], len_ops: int) -> list[list[int]]:
+    rows = [[] for _ in range(len_ops)]
+    current_row = 0
+    buffer = ""
 
-    for k, v in nums.items():
-        result.append([])
-        for i, n in enumerate(v):
-            if n.isdigit():
-                num += n
+    for row in nums.values():
+        # An empty line separates rows.
+        if "".join(row).strip() == "":
+            current_row += 1
+            continue
+
+        for char in row:
+            if char.isdigit():
+                buffer += char
             else:
-                if num:
-                    result[k].append(int(num))
-                    num = ""
+                if buffer:
+                    rows[current_row].append(int(buffer))
+                    buffer = ""
 
-        if num:
-            result[k].append(int(num))
-            num = ""
-    return result
+        # Flush any trailing number at the end of the line.
+        if buffer:
+            rows[current_row].append(int(buffer))
+            buffer = ""
+
+    return rows
 
 
-def processed_line(line: str, nums: dict[int, list[str]]) -> None:
-    for i, n in enumerate(line):
-        nums[i].append(n)
+def collect_line(line: str, nums: dict[int, list[str]]) -> None:
+    for i, char in enumerate(line):
+        nums[i].append(char)
 
 
 def process_input(input_path: str) -> int:
-    ops = []
-    nums = defaultdict(list)
+    ops: list[str] = []
+    nums: defaultdict[int, list[str]] = defaultdict(list)
 
     try:
-        f = open(input_path)
-        lines = f.readlines()
+        with open(input_path, encoding="utf-8") as f:
+            lines = f.readlines()
+
         for i, line in enumerate(lines):
+            line = line.strip("\n")
             if not line:
-                break
+                continue
 
             if i == len(lines) - 1:
-                ops = line
+                ops = line.split()
             else:
-                processed_line(line, nums)
+                collect_line(line, nums)
 
     except FileNotFoundError:
         return 0
 
-    finally:
-        f.close()
-    print(f"before process rows: {nums}")
-    cols = process_rows(nums)
-    print(f"after process rows: {cols}")
-    return count_grand_total(cols, ops)
+    if not ops:
+        return 0
+
+    rows = parse_rows(nums, len(ops))
+    grand_total = count_grand_total(rows, ops)
+    return grand_total
 
 
 if __name__ == "__main__":
-    print(f"The grand total: {process_input('day6/test_input.txt')}")
-    # print(f"The grand total: {process_input('day6/input.txt')}")
+    # print(f"The grand total: {process_input('day6/test_input.txt')}")
+    print(f"The grand total: {process_input('day6/input.txt')}")
+    # The grand total: 7669802156452
