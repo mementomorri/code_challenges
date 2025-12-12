@@ -1,0 +1,139 @@
+"""
+--- Part Two ---
+
+With your analysis of the manifold complete, you begin fixing the teleporter. However, as you open the side of the teleporter to replace the broken manifold, you are surprised to discover that it isn't a classical tachyon manifold - it's a quantum tachyon manifold.
+
+With a quantum tachyon manifold, only a single tachyon particle is sent through the manifold. A tachyon particle takes both the left and right path of each splitter encountered.
+
+Since this is impossible, the manual recommends the many-worlds interpretation of quantum tachyon splitting: each time a particle reaches a splitter, it's actually time itself which splits. In one timeline, the particle went left, and in the other timeline, the particle went right.
+
+To fix the manifold, what you really need to know is the number of timelines active after a single particle completes all of its possible journeys through the manifold.
+
+In the above example, there are many timelines. For instance, there's the timeline where the particle always went left:
+
+.......S.......
+.......|.......
+......|^.......
+......|........
+.....|^.^......
+.....|.........
+....|^.^.^.....
+....|..........
+...|^.^...^....
+...|...........
+..|^.^...^.^...
+..|............
+.|^...^.....^..
+.|.............
+|^.^.^.^.^...^.
+|..............
+
+Or, there's the timeline where the particle alternated going left and right at each splitter:
+
+.......S.......
+.......|.......
+......|^.......
+......|........
+......^|^......
+.......|.......
+.....^|^.^.....
+......|........
+....^.^|..^....
+.......|.......
+...^.^.|.^.^...
+.......|.......
+..^...^|....^..
+.......|.......
+.^.^.^|^.^...^.
+......|........
+
+Or, there's the timeline where the particle ends up at the same point as the alternating timeline, but takes a totally different path to get there:
+
+.......S.......
+.......|.......
+......|^.......
+......|........
+.....|^.^......
+.....|.........
+....|^.^.^.....
+....|..........
+....^|^...^....
+.....|.........
+...^.^|..^.^...
+......|........
+..^..|^.....^..
+.....|.........
+.^.^.^|^.^...^.
+......|........
+
+In this example, in total, the particle ends up on 40 different timelines.
+
+Apply the many-worlds interpretation of quantum tachyon splitting to your manifold diagram. In total, how many different timelines would a single tachyon particle end up on?
+"""
+
+from collections import defaultdict
+
+ENTER = "S"
+SPLITTER = "^"
+SPACE = "."
+
+
+def collect_line(line: str, beam_coodinates: dict[int, list[int]], y: int) -> tuple[int, int]:
+    forks = 0
+    levels = 0
+
+    for i, char in enumerate(line):
+        if i in beam_coodinates.get(y - 1, []):
+            current_row = beam_coodinates[y]
+            if char == SPLITTER:
+                print(f"fount splitter at: {i}, {y}")
+                if i > 0 and line[i - 1] != SPLITTER:
+                    current_row.append(i - 1)
+                    forks += 1
+                    print(f"can fork at: {i - 1}, {y}")
+                if i < len(line) - 1 and line[i + 1] != SPLITTER:
+                    current_row.append(i + 1)
+                    forks += 1
+                    print(f"can fork at: {i + 1}, {y}")
+                levels += 1
+            if char == SPACE:
+                current_row.append(i)
+
+    if forks == 0:
+        print(f"No forks at row: {y}")
+
+    return (forks, levels)
+
+
+def process_input(input_path: str) -> int:
+    total_forks = 0
+    total_levels = 0
+    beam_coodinates: dict[int, list[int]] = defaultdict(list)  # y: [x, x, ...], y: [x, x, ...]
+
+    try:
+        with open(input_path, encoding="utf-8") as f:
+            lines = f.readlines()
+
+        enter_coordinate = lines[0].index(ENTER)
+        beam_coodinates[1] = [enter_coordinate]
+
+        for i, line in enumerate(lines[2:]):
+            line = line.strip("\n")
+            if not line:
+                continue
+
+            forks, levels = collect_line(line, beam_coodinates, i + 2)
+            total_forks += forks
+            total_levels += levels
+            print(f"total forks: {total_forks}; total levels: {total_levels}\n")
+
+    except FileNotFoundError:
+        return 0
+
+    print(f"totla forks: {total_forks}; total levels: {total_levels}")
+    return total_forks - 2
+
+
+if __name__ == "__main__":
+    print(f"Single tachyon particle end up on a {process_input("day7/test_input.txt")} different timelines")
+    # print(f"Single tachyon particle end up on a {process_input("day7/input.txt")} different timelines")
