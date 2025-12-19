@@ -71,69 +71,84 @@ In this example, in total, the particle ends up on 40 different timelines.
 Apply the many-worlds interpretation of quantum tachyon splitting to your manifold diagram. In total, how many different timelines would a single tachyon particle end up on?
 """
 
-from collections import defaultdict
+#!/usr/bin/env python3
+from functools import cache
+import sys
 
-ENTER = "S"
-SPLITTER = "^"
-SPACE = "."
-
-
-def collect_line(line: str, beam_coodinates: dict[int, list[int]], y: int) -> tuple[int, int]:
-    forks = 0
-    levels = 0
-
-    for i, char in enumerate(line):
-        if i in beam_coodinates.get(y - 1, []):
-            current_row = beam_coodinates[y]
-            if char == SPLITTER:
-                print(f"fount splitter at: {i}, {y}")
-                if i > 0 and line[i - 1] != SPLITTER:
-                    current_row.append(i - 1)
-                    forks += 1
-                    print(f"can fork at: {i - 1}, {y}")
-                if i < len(line) - 1 and line[i + 1] != SPLITTER:
-                    current_row.append(i + 1)
-                    forks += 1
-                    print(f"can fork at: {i + 1}, {y}")
-                levels += 1
-            if char == SPACE:
-                current_row.append(i)
-
-    if forks == 0:
-        print(f"No forks at row: {y}")
-
-    return (forks, levels)
+SPLITTER = '^'
+SPACE = '.'
+ENTER = 'S'
 
 
-def process_input(input_path: str) -> int:
-    total_forks = 0
-    total_levels = 0
-    beam_coodinates: dict[int, list[int]] = defaultdict(list)  # y: [x, x, ...], y: [x, x, ...]
+def read_grid(path):
+    with open(path, encoding='utf-8') as f:
+        raw = [line.rstrip("\n") for line in f.readlines()]
+    width = max(len(r) for r in raw)
+    grid = [list(r.ljust(width, ' ')) for r in raw]
+    return grid
 
-    try:
-        with open(input_path, encoding="utf-8") as f:
-            lines = f.readlines()
 
-        enter_coordinate = lines[0].index(ENTER)
-        beam_coodinates[1] = [enter_coordinate]
+def find_start(grid):
+    for y, row in enumerate(grid):
+        for x, ch in enumerate(row):
+            if ch == ENTER:
+                return x, y
+    raise ValueError("No start 'S' found")
 
-        for i, line in enumerate(lines[2:]):
-            line = line.strip("\n")
-            if not line:
-                continue
 
-            forks, levels = collect_line(line, beam_coodinates, i + 2)
-            total_forks += forks
-            total_levels += levels
-            print(f"total forks: {total_forks}; total levels: {total_levels}\n")
+def in_bounds(x, y, W, H):
+    return 0 <= x < W and 0 <= y < H
 
-    except FileNotFoundError:
-        return 0
 
-    print(f"totla forks: {total_forks}; total levels: {total_levels}")
-    return total_forks - 2
+def make_successor_fn(grid):
+    H = len(grid)
+    W = len(grid[0]) if H > 0 else 0
+
+    def successors(node):
+        x, y = node
+        ny = y + 1
+        if ny >= H:
+            return []
+        ch = grid[ny][x]
+        if ch == SPLITTER:
+            succs = []
+            for nx in (x - 1, x + 1):
+                if in_bounds(nx, ny, W, H):
+                    succs.append((nx, ny))
+            return succs
+        if ch != ' ':
+            return [(x, ny)]
+        return []
+
+    return successors
+
+
+def count_timelines(grid):
+    sx, sy = find_start(grid)
+    successors = make_successor_fn(grid)
+
+    @cache
+    def dp(node):
+        succs = successors(node)
+        if not succs:
+            return 1
+        total = 0
+        for s in succs:
+            total += dp(s)
+        return total
+
+    return dp((sx, sy))
+
+
+def main(path):
+    grid = read_grid(path)
+    total = count_timelines(grid)
+    print("Tachyon beam will split:", total, "times")
+    # Tachyon beam will split: 48989920237096 times
 
 
 if __name__ == "__main__":
-    print(f"Single tachyon particle end up on a {process_input("day7/test_input.txt")} different timelines")
-    # print(f"Single tachyon particle end up on a {process_input("day7/input.txt")} different timelines")
+    if len(sys.argv) < 2:
+        print("Usage: python3 puzzle2.py <input-file>")
+        sys.exit(1)
+    main(sys.argv[1])
