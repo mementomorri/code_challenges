@@ -1,0 +1,21 @@
+Let us denote the maximal error of an interval with center i by Δi
+the maximal error of an interval with center j by Δj,
+and the maximal error of the multiplication result with center k by Δk.
+Then:
+
+k+Δk=(i+Δi)∗(j+Δj)=ij+jΔi+iΔj+ΔiΔj
+
+Since k=ij
+
+Δk=jΔi+iΔj+ΔiΔj
+
+Since we assume that Δi≪ i and Δj≪ j, we can neglect the term ΔiΔj and obtain
+
+Δk=jΔi+iΔj
+
+Expressed in tolerances, we obtain:
+
+Δk/k=(jΔi+iΔj)/ij=Δi/i+Δj/j
+
+Thus, the tolerance of the result of an interval multiplication
+is (roughly) the sum of the tolerances of its arguments.
