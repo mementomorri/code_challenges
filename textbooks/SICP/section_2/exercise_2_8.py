@@ -11,10 +11,13 @@ class Interval(Point):
         return self.low
 
     def __str__(self):
-        return f"[{self.low},{self.high}]"
+        return f"[{self.low:.2f},{self.high:.2f}]"
 
     def __add__(self, other):
         return Interval(self.low + other.low, self.high + other.high)
+
+    def __sub__(self, other):
+        return Interval(self.low - other.low, self.high - other.high)
 
     def __mul__(self, other):
         if not isinstance(other, Interval):
@@ -34,9 +37,10 @@ class Interval(Point):
 
 
 if __name__ == "__main__":
-    i1 = Interval(1, 2)
-    i2 = Interval(3, 4)
+    i1 = Interval(6.1, 7.5)
+    i2 = Interval(4.45, 4.95)
     print("We've got two intervals", i1, i2)
     print("summation:", i1 + i2)
+    print("subtraction:", i1 - i2)
     print("multiplication", i1 * i2)
     print("division:", i1 / i2)
