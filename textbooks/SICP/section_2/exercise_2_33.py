@@ -1,5 +1,4 @@
 def accumulate(op, initial, seq):
-    # print(initial, seq)
     return initial if not seq else op(seq[0], accumulate(op, initial, seq[1:]))
 
 
